@@ -28,7 +28,7 @@ export default function Sidebar({ activeSection, onSectionChange, userRole }: Si
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center font-bold">
-            HM
+            HE
           </div>
           <div>
             <h1 className="font-bold text-lg">Hotel Management</h1>
