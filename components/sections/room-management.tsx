@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Edit2, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Image as ImageIcon } from 'lucide-react';
 import RoomForm from '@/components/forms/room-form';
 
 const roomStatusColors = {
@@ -30,7 +30,12 @@ export default function RoomManagement() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
 
-  const filteredRooms = rooms.filter(room => {
+  // === Room Type States ===
+  const [roomTypes, setRoomTypes] = useState<string[]>(['single', 'double', 'suite', 'deluxe']);
+  const [showTypeInput, setShowTypeInput] = useState(false);
+  const [newType, setNewType] = useState('');
+
+  const filteredRooms = rooms.filter((room: Room) => {
     const matchesStatus = filterStatus === 'all' || room.status === filterStatus;
     const matchesType = filterType === 'all' || room.roomType === filterType;
     return matchesStatus && matchesType;
@@ -54,7 +59,7 @@ export default function RoomManagement() {
   };
 
   const handleStatusChange = (roomId: string, newStatus: Room['status']) => {
-    const room = rooms.find(r => r.id === roomId);
+    const room = rooms.find((r: Room) => r.id === roomId);
     if (room) {
       room.status = newStatus;
       saveRoom(room);
@@ -62,17 +67,31 @@ export default function RoomManagement() {
     }
   };
 
+  // === Add Room Type Handler ===
+  const handleAddRoomType = () => {
+    const type = newType.trim().toLowerCase();
+    if (!type) return;
+    if (!roomTypes.includes(type)) {
+      setRoomTypes([...roomTypes, type]);
+      setNewType('');
+      setShowTypeInput(false);
+    } else {
+      alert('Room type already exists');
+    }
+  };
+
   const roomStats = {
     total: rooms.length,
-    available: rooms.filter(r => r.status === 'available').length,
-    occupied: rooms.filter(r => r.status === 'occupied').length,
-    maintenance: rooms.filter(r => r.status === 'maintenance').length,
+    available: rooms.filter((r: Room) => r.status === 'available').length,
+    occupied: rooms.filter((r: Room) => r.status === 'occupied').length,
+    maintenance: rooms.filter((r: Room) => r.status === 'maintenance').length,
   };
 
   if (showForm) {
     return (
       <RoomForm
         room={editingRoom}
+        roomTypes={roomTypes} // Pass dynamic room types
         onSave={handleSaveRoom}
         onCancel={() => {
           setShowForm(false);
@@ -84,18 +103,45 @@ export default function RoomManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header with buttons */}
+      <div className="flex items-center justify-between gap-2">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Room Management</h1>
           <p className="text-muted-foreground mt-1">Manage rooms, pricing, and availability</p>
         </div>
-        <Button onClick={handleAddRoom} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="w-4 h-4" />
-          Add Room
-        </Button>
+
+        <div className="flex gap-2">
+          <Button
+            onClick={handleAddRoom}
+            className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4" />
+            Add Room
+          </Button>
+
+          <Button
+            onClick={() => setShowTypeInput(!showTypeInput)}
+            variant="outline"
+            className="gap-2"
+          >
+            + Room Type
+          </Button>
+        </div>
       </div>
 
-      {/* Room Statistics */}
+      {/* Inline input for new room type */}
+      {showTypeInput && (
+        <div className="flex gap-2 mt-2 max-w-sm">
+          <Input
+            placeholder="New room type"
+            value={newType}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewType(e.target.value)}
+          />
+          <Button onClick={handleAddRoomType}>Add</Button>
+        </div>
+      )}
+
+      {/* Room Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -146,13 +192,15 @@ export default function RoomManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="single">Single</SelectItem>
-                  <SelectItem value="double">Double</SelectItem>
-                  <SelectItem value="suite">Suite</SelectItem>
-                  <SelectItem value="deluxe">Deluxe</SelectItem>
+                  {roomTypes.map((type: string) => (
+                    <SelectItem key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Status</label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -181,7 +229,7 @@ export default function RoomManagement() {
             </CardContent>
           </Card>
         ) : (
-          filteredRooms.map(room => (
+          filteredRooms.map((room: Room) => (
             <Card key={room.id} className="flex flex-col hover:border-primary/50 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -194,6 +242,26 @@ export default function RoomManagement() {
                   </span>
                 </div>
               </CardHeader>
+
+              {/* Room Image */}
+              {room.image ? (
+                <div className="px-6 pb-3">
+                  <div className="w-full h-32 rounded-lg overflow-hidden border border-border">
+                    <img
+                      src={room.image}
+                      alt={`Room ${room.roomNumber}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="px-6 pb-3">
+                  <div className="w-full h-32 rounded-lg border-2 border-dashed border-border flex items-center justify-center bg-muted/50">
+                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                </div>
+              )}
+
               <CardContent className="flex-1 space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Price per Night</p>
@@ -203,7 +271,7 @@ export default function RoomManagement() {
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">Amenities</p>
                   <div className="flex flex-wrap gap-1">
-                    {room.amenities.map(amenity => (
+                    {room.amenities.map((amenity) => (
                       <span key={amenity} className="px-2 py-1 bg-secondary text-xs rounded">
                         {amenity}
                       </span>

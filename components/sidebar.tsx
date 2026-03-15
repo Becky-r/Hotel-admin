@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, LayoutGrid, Users, FileText, Home, BarChart3, Key } from 'lucide-react';
+import { Calendar, LayoutGrid, Users, FileText, Home, BarChart3, Key, List, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +15,8 @@ export default function Sidebar({ activeSection, onSectionChange, userRole }: Si
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'bookings', label: 'Bookings', icon: Calendar },
     { id: 'rooms', label: 'Rooms', icon: LayoutGrid },
+    { id: 'amenities', label: 'Amenities', icon: List },
+    { id: 'services', label: 'Services', icon: Gift },
     ...(userRole === 'owner' || userRole === 'manager'
       ? [{ id: 'staff', label: 'Staff', icon: Users }]
       : []),

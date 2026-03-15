@@ -10,7 +10,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'Hotel Management System',
   description: 'Professional hotel booking and management dashboard',
-  generator: 'v0.app',
+  generator: 'Sabih software Design Company',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

@@ -133,7 +133,12 @@ export default function ReportsAnalytics() {
       : '0';
 
     // Room utilization by floor
-    const floorUtilization = [];
+    const floorUtilization: {
+      floor: string;
+      totalRooms: number;
+      occupiedRooms: number;
+      utilizationRate: number;
+    }[] = [];
     const floors = [...new Set(rooms.map(r => r.floor))].sort();
     floors.forEach(floor => {
       const floorRooms = rooms.filter(r => r.floor === floor);

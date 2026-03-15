@@ -14,7 +14,7 @@ export interface Booking {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
-  roomId: string;
+  roomId: string; // Primary room ID for backward compatibility
   checkInDate: string;
   checkOutDate: string;
   status: 'pending' | 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
@@ -23,8 +23,29 @@ export interface Booking {
   bookingType: 'online' | 'manual' | 'walkin';
   specialRequests?: string;
   paymentStatus: 'pending' | 'paid' | 'refunded';
+  companyName?: string;
+  tinNumber?: string;
+  adults?: number;
+  children?: number;
+  roomNumber?: string; // Primary room number for backward compatibility
+  roomType?: string; // Primary room type for backward compatibility
+  rooms?: BookingRoom[]; // Array of rooms for multiple room bookings
+  history?: BookingHistory[]; // Booking history
   createdAt: string;
   updatedAt: string;
+}
+
+export interface BookingHistory {
+  updatedBy: string;
+  timestamp: string;
+  changes: string;
+}
+
+export interface BookingRoom {
+  id: string;
+  roomNumber: string;
+  roomType: string;
+  price: number;
 }
 
 // Room types
@@ -38,6 +59,7 @@ export interface Room {
   status: 'available' | 'occupied' | 'maintenance' | 'blocked';
   amenities: string[];
   floor: number;
+  image?: string; // Room image URL/path
   createdAt: string;
   updatedAt: string;
 }
@@ -93,4 +115,28 @@ export interface RevenueReport {
     pending: number;
     refunded: number;
   };
+}
+
+// Amenity management types
+export interface Amenity {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Service management types
+export interface Service {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string;
+  price: number;
+  durationMinutes?: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }

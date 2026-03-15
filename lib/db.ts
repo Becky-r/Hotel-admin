@@ -1,10 +1,12 @@
-import { Booking, Room, User, PricingRule, Shift, DailyReport } from './types';
+import { Booking, Room, User, PricingRule, Shift, DailyReport, Amenity, Service } from './types';
 
 // LocalStorage utility functions
 const DB_KEYS = {
   USERS: 'hotel_users',
   BOOKINGS: 'hotel_bookings',
   ROOMS: 'hotel_rooms',
+  AMENITIES: 'hotel_amenities',
+  SERVICES: 'hotel_services',
   PRICING_RULES: 'hotel_pricing_rules',
   SHIFTS: 'hotel_shifts',
   CURRENT_USER: 'hotel_current_user',
@@ -137,9 +139,66 @@ export function initializeDatabase() {
     },
   ];
 
+  const amenities: Amenity[] = [
+    {
+      id: '1',
+      name: 'WiFi',
+      description: 'High speed wireless internet throughout the property',
+      category: 'Room',
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      name: 'Breakfast Buffet',
+      description: 'Complimentary breakfast served daily',
+      category: 'Food',
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: '3',
+      name: 'Parking',
+      description: 'Free on-site parking for guests',
+      category: 'Facility',
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  const services: Service[] = [
+    {
+      id: '1',
+      name: 'Laundry Service',
+      description: 'Same-day laundry pickup and delivery',
+      category: 'Housekeeping',
+      price: 15,
+      durationMinutes: 120,
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      name: 'Airport Shuttle',
+      description: 'Scheduled airport pickup and drop-off',
+      category: 'Transport',
+      price: 25,
+      durationMinutes: 60,
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
   localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
   localStorage.setItem(DB_KEYS.BOOKINGS, JSON.stringify(bookings));
   localStorage.setItem(DB_KEYS.ROOMS, JSON.stringify(rooms));
+  localStorage.setItem(DB_KEYS.AMENITIES, JSON.stringify(amenities));
+  localStorage.setItem(DB_KEYS.SERVICES, JSON.stringify(services));
   localStorage.setItem(DB_KEYS.PRICING_RULES, JSON.stringify([]));
   localStorage.setItem(DB_KEYS.SHIFTS, JSON.stringify([]));
 }
@@ -236,6 +295,64 @@ export function getAvailableRooms(checkInDate: string, checkOutDate: string): Ro
           new Date(checkOutDate) > new Date(b.checkInDate))
     );
   });
+}
+
+// Amenity operations
+export function getAmenities(): Amenity[] {
+  if (typeof window === 'undefined') return [];
+  return JSON.parse(localStorage.getItem(DB_KEYS.AMENITIES) || '[]');
+}
+
+export function getAmenityById(id: string): Amenity | null {
+  const amenities = getAmenities();
+  return amenities.find(a => a.id === id) || null;
+}
+
+export function saveAmenity(amenity: Amenity): void {
+  if (typeof window === 'undefined') return;
+  const amenities = getAmenities();
+  const index = amenities.findIndex(a => a.id === amenity.id);
+  if (index >= 0) {
+    amenities[index] = amenity;
+  } else {
+    amenities.push(amenity);
+  }
+  localStorage.setItem(DB_KEYS.AMENITIES, JSON.stringify(amenities));
+}
+
+export function deleteAmenity(id: string): void {
+  if (typeof window === 'undefined') return;
+  const amenities = getAmenities().filter(a => a.id !== id);
+  localStorage.setItem(DB_KEYS.AMENITIES, JSON.stringify(amenities));
+}
+
+// Service operations
+export function getServices(): Service[] {
+  if (typeof window === 'undefined') return [];
+  return JSON.parse(localStorage.getItem(DB_KEYS.SERVICES) || '[]');
+}
+
+export function getServiceById(id: string): Service | null {
+  const services = getServices();
+  return services.find(s => s.id === id) || null;
+}
+
+export function saveService(service: Service): void {
+  if (typeof window === 'undefined') return;
+  const services = getServices();
+  const index = services.findIndex(s => s.id === service.id);
+  if (index >= 0) {
+    services[index] = service;
+  } else {
+    services.push(service);
+  }
+  localStorage.setItem(DB_KEYS.SERVICES, JSON.stringify(services));
+}
+
+export function deleteService(id: string): void {
+  if (typeof window === 'undefined') return;
+  const services = getServices().filter(s => s.id !== id);
+  localStorage.setItem(DB_KEYS.SERVICES, JSON.stringify(services));
 }
 
 // Session operations

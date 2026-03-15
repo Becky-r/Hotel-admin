@@ -13,17 +13,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, X, Upload, Image as ImageIcon } from 'lucide-react';
 
 interface RoomFormProps {
   room?: Room | null;
+  roomTypes?: string[];
   onSave: (room: Room) => void;
   onCancel: () => void;
 }
 
 const availableAmenities = ['WiFi', 'AC', 'TV', 'Bathtub', 'Kitchen', 'Gym Access', 'Balcony', 'Safe', 'Mini Bar', 'Desk'];
 
-export default function RoomForm({ room, onSave, onCancel }: RoomFormProps) {
+export default function RoomForm({ room, roomTypes, onSave, onCancel }: RoomFormProps) {
   const [formData, setFormData] = useState<Partial<Room>>(
     room || {
       roomNumber: '',
@@ -34,8 +35,12 @@ export default function RoomForm({ room, onSave, onCancel }: RoomFormProps) {
       status: 'available',
       amenities: [],
       floor: 1,
+      image: '',
     }
   );
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
 
   const handleAmenityToggle = (amenity: string) => {
     const amenities = formData.amenities || [];
@@ -52,6 +57,26 @@ export default function RoomForm({ room, onSave, onCancel }: RoomFormProps) {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        setFormData({ ...formData, image: result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setFormData({ ...formData, image: '' });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -65,6 +90,7 @@ export default function RoomForm({ room, onSave, onCancel }: RoomFormProps) {
       status: (formData.status as any) || 'available',
       amenities: formData.amenities || [],
       floor: formData.floor || 1,
+      image: formData.image || '',
       createdAt: room?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -108,15 +134,16 @@ export default function RoomForm({ room, onSave, onCancel }: RoomFormProps) {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Room Type *</label>
-                <Select value={formData.roomType || 'double'} onValueChange={(value) => setFormData({ ...formData, roomType: value as any })}>
+                <Select value={formData.roomType || (roomTypes?.[0] ?? 'double')} onValueChange={(value) => setFormData({ ...formData, roomType: value as any })}>
                   <SelectTrigger className="bg-input border-border">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="single">Single</SelectItem>
-                    <SelectItem value="double">Double</SelectItem>
-                    <SelectItem value="suite">Suite</SelectItem>
-                    <SelectItem value="deluxe">Deluxe</SelectItem>
+                    {(roomTypes ?? ['single', 'double', 'suite', 'deluxe']).map((type: string) => (
+                      <SelectItem key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -129,6 +156,57 @@ export default function RoomForm({ room, onSave, onCancel }: RoomFormProps) {
                   onChange={(e) => setFormData({ ...formData, floor: parseInt(e.target.value) })}
                   className="bg-input border-border"
                 />
+              </div>
+            </div>
+
+            {/* Room Image */}
+            <div className="space-y-4">
+              <label className="text-sm font-medium">Room Image</label>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  {imagePreview || formData.image ? (
+                    <div className="relative w-32 h-32 border-2 border-dashed border-border rounded-lg overflow-hidden">
+                      <img
+                        src={imagePreview || formData.image}
+                        alt="Room preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-1 right-1 w-6 h-6 p-0"
+                        onClick={removeImage}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-32 border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted/50">
+                      <ImageIcon className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="room-image"
+                  />
+                  <label htmlFor="room-image">
+                    <Button type="button" variant="outline" className="gap-2" asChild>
+                      <span>
+                        <Upload className="w-4 h-4" />
+                        {imagePreview || formData.image ? 'Change Image' : 'Upload Image'}
+                      </span>
+                    </Button>
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Upload a high-quality image of the room (JPG, PNG, max 5MB)
+                  </p>
+                </div>
               </div>
             </div>
 
