@@ -1,7 +1,6 @@
 'use client';
 
-import { Calendar, LayoutGrid, Users, FileText, Home, BarChart3, Key, List, Gift } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Calendar, LayoutGrid, Users, User, Home, BarChart3, List, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -23,10 +22,11 @@ export default function Sidebar({ activeSection, onSectionChange, userRole }: Si
     ...(userRole === 'owner' || userRole === 'manager' || userRole === 'receptionist'
       ? [{ id: 'reports', label: 'Reports', icon: BarChart3 }]
       : []),
+    { id: 'account', label: 'Account', icon: User },
   ];
 
   return (
-    <aside className="w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border h-screen sticky top-0 flex flex-col">
+    <aside className="fixed top-0 left-0 w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border h-screen flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center font-bold">
@@ -62,7 +62,21 @@ export default function Sidebar({ activeSection, onSectionChange, userRole }: Si
       </nav>
 
       <div className="p-4 border-t border-sidebar-border">
-        <div className="text-xs text-sidebar-foreground/60 mb-3">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-10 w-10 rounded-lg bg-sidebar-accent text-sidebar-foreground flex items-center justify-center font-semibold">
+            U
+          </div>
+          <div>
+            <p className="text-sm font-semibold">Account</p>
+            <p className="text-xs text-sidebar-foreground/60 capitalize">{userRole}</p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {/* Settings removed per request */}
+        </div>
+
+        <div className="mt-4 text-xs text-sidebar-foreground/60">
           <p className="font-semibold mb-1">Current Version</p>
           <p>1.0.0 - Beta</p>
           <p>@Sabih Software Design company</p>

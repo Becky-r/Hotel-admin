@@ -12,8 +12,19 @@ import ServicesManagement from '@/components/sections/services-management';
 import StaffManagement from '@/components/sections/staff-management';
 import ReportsAnalytics from '@/components/sections/reports-analytics';
 import DashboardOverview from '@/components/sections/dashboard-overview';
+import Settings from '@/components/sections/settings';
+import Account from '@/components/sections/account';
 
-type Section = 'overview' | 'bookings' | 'rooms' | 'amenities' | 'services' | 'staff' | 'reports';
+type Section =
+  | 'overview'
+  | 'bookings'
+  | 'rooms'
+  | 'amenities'
+  | 'services'
+  | 'staff'
+  | 'reports'
+  | 'account'
+  | 'settings';
 
 interface DashboardProps {
   user: User;
@@ -39,6 +50,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         return <StaffManagement />;
       case 'reports':
         return <ReportsAnalytics />;
+      case 'account':
+        return <Account user={user} />;
+      case 'settings':
+        return <Settings />;
       default:
         return <DashboardOverview />;
     }
@@ -48,9 +63,9 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
     <div className="min-h-screen bg-background">
       <div className="flex">
         <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} userRole={user.role} />
-        <main className="flex-1 flex flex-col">
+        <main className="ml-64 flex-1 flex flex-col">
           <Header userName={user.name} userRole={user.role} onLogout={onLogout} />
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto mt-16">
             <div className="p-6 max-w-7xl mx-auto">
               {renderSection()}
             </div>

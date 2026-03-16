@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, Bell, Settings } from 'lucide-react';
+import { LogOut, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
@@ -11,7 +11,7 @@ interface HeaderProps {
 
 export default function Header({ userName, userRole, onLogout }: HeaderProps) {
   return (
-    <header className="bg-card border-b border-border sticky top-0 z-40">
+    <header className="fixed top-0 left-64 right-0 z-40 bg-card border-b border-border">
       <div className="flex items-center justify-between px-6 py-4">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Welcome back, {userName}</h2>
@@ -21,9 +21,6 @@ export default function Header({ userName, userRole, onLogout }: HeaderProps) {
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
             <Bell className="w-5 h-5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-            <Settings className="w-5 h-5" />
           </Button>
           <Button
             variant="outline"
