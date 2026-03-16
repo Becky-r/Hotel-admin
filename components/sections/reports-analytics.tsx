@@ -578,13 +578,24 @@ export default function ReportsAnalytics() {
     </div>
   </CardContent>
 </Card>
+
         </div>
 
 
         
       </div>
 
-      
+      {/* Footer Branding Engine */}
+      <div className="pt-20 pb-10 flex flex-col items-center gap-4">
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+        <div className="flex items-center gap-8">
+          
+          <p className="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.8em] animate-pulse">
+            @Sabih Software
+          </p>
+          
+        </div>
+      </div>
     </div>
   );
 }

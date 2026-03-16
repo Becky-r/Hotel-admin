@@ -88,7 +88,7 @@ export default function Sidebar({ activeSection, onSectionChange, userRole, isMi
         {!isMinimized && (
           <div className="overflow-hidden animate-in slide-in-from-left-4 duration-500">
             <h1 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Kerawi</h1>
-            <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-black tracking-[0.3em] mt-1">HOTEL OS</p>
+            <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-black tracking-[0.3em] mt-1">INT.HOTEL</p>
           </div>
         )}
       </div>
@@ -181,8 +181,8 @@ export default function Sidebar({ activeSection, onSectionChange, userRole, isMi
         </div>
         {!isMinimized && (
           <p className="text-center text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.7em] mt-4 opacity-80 animate-pulse">
-  @Sabih Software
-</p>
+                   @Sabih Software
+           </p>
         )}
       </div>
     </aside>
