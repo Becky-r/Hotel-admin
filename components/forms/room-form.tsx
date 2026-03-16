@@ -29,7 +29,10 @@ export default function RoomForm({ room, roomTypes, onSave, onCancel }: RoomForm
     room || {
       roomNumber: '',
       roomType: 'double',
-      capacity: 1,
+      capacity: {
+        adults: 1,
+        children: 0,
+      },
       basePrice: 0,
       currentPrice: 0,
       status: 'available',
@@ -84,7 +87,7 @@ export default function RoomForm({ room, roomTypes, onSave, onCancel }: RoomForm
       id: room?.id || Math.random().toString(36).substr(2, 9),
       roomNumber: formData.roomNumber || '',
       roomType: (formData.roomType as any) || 'double',
-      capacity: formData.capacity || 1,
+      capacity: formData.capacity || { adults: 1, children: 0 },
       basePrice: formData.basePrice || 0,
       currentPrice: formData.currentPrice || formData.basePrice || 0,
       status: (formData.status as any) || 'available',
@@ -213,12 +216,34 @@ export default function RoomForm({ room, roomTypes, onSave, onCancel }: RoomForm
             {/* Capacity & Pricing */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Guest Capacity *</label>
+                <label className="text-sm font-medium">Adult Capacity *</label>
                 <Input
                   type="number"
                   min="1"
-                  value={formData.capacity || 1}
-                  onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
+                  value={formData.capacity?.adults || 1}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    capacity: {
+                      ...formData.capacity!,
+                      adults: parseInt(e.target.value)
+                    }
+                  })}
+                  className="bg-input border-border"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Children Capacity</label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={formData.capacity?.children || 0}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    capacity: {
+                      ...formData.capacity!,
+                      children: parseInt(e.target.value)
+                    }
+                  })}
                   className="bg-input border-border"
                 />
               </div>

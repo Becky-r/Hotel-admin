@@ -52,14 +52,32 @@ export interface BookingRoom {
 export interface Room {
   id: string;
   roomNumber: string;
-  roomType: 'single' | 'double' | 'suite' | 'deluxe';
-  capacity: number;
+  roomType: string; // Changed from enum to string for dynamic room types
+  capacity: {
+    adults: number;
+    children: number;
+  };
   basePrice: number;
   currentPrice: number;
   status: 'available' | 'occupied' | 'maintenance' | 'blocked';
   amenities: string[];
   floor: number;
   image?: string; // Room image URL/path
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoomType {
+  id: string;
+  name: string;
+  description: string;
+  basePrice: number;
+  capacity: {
+    adults: number;
+    children: number;
+  };
+  amenities: string[];
+  images: string[];
   createdAt: string;
   updatedAt: string;
 }

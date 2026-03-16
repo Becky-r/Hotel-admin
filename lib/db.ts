@@ -1,10 +1,11 @@
-import { Booking, Room, User, PricingRule, Shift, DailyReport, Amenity, Service } from './types';
+import { Booking, Room, User, PricingRule, Shift, DailyReport, Amenity, Service, RoomType } from './types';
 
 // LocalStorage utility functions
 const DB_KEYS = {
   USERS: 'hotel_users',
   BOOKINGS: 'hotel_bookings',
   ROOMS: 'hotel_rooms',
+  ROOM_TYPES: 'hotel_room_types',
   AMENITIES: 'hotel_amenities',
   SERVICES: 'hotel_services',
   PRICING_RULES: 'hotel_pricing_rules',
@@ -16,8 +17,62 @@ const DB_KEYS = {
 export function initializeDatabase() {
   if (typeof window === 'undefined') return;
 
+  // Sample room types (defined at the top for use in checks)
+  const roomTypes: RoomType[] = [
+    {
+      id: '1',
+      name: 'single',
+      description: 'Cozy room for one guest',
+      basePrice: 80,
+      capacity: { adults: 1, children: 0 },
+      amenities: ['WiFi', 'AC', 'TV'],
+      images: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      name: 'double',
+      description: 'Comfortable room for two guests',
+      basePrice: 120,
+      capacity: { adults: 2, children: 1 },
+      amenities: ['WiFi', 'AC', 'TV', 'Bathtub'],
+      images: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: '3',
+      name: 'suite',
+      description: 'Luxurious suite with separate living area',
+      basePrice: 200,
+      capacity: { adults: 2, children: 2 },
+      amenities: ['WiFi', 'AC', 'TV', 'Bathtub', 'Kitchen', 'Balcony'],
+      images: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: '4',
+      name: 'deluxe',
+      description: 'Premium room with enhanced amenities',
+      basePrice: 160,
+      capacity: { adults: 2, children: 1 },
+      amenities: ['WiFi', 'AC', 'TV', 'Bathtub', 'Mini Bar', 'Safe'],
+      images: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
   // Check if already initialized
-  if (localStorage.getItem(DB_KEYS.USERS)) return;
+  if (localStorage.getItem(DB_KEYS.USERS)) {
+    // Check if room types exist, if not, add them
+    if (!localStorage.getItem(DB_KEYS.ROOM_TYPES)) {
+      localStorage.setItem(DB_KEYS.ROOM_TYPES, JSON.stringify(roomTypes));
+    }
+    return;
+  }
 
   // Sample users
   const users: User[] = [
@@ -53,7 +108,7 @@ export function initializeDatabase() {
       id: '1',
       roomNumber: '101',
       roomType: 'single',
-      capacity: 1,
+      capacity: { adults: 1, children: 0 },
       basePrice: 80,
       currentPrice: 80,
       status: 'available',
@@ -66,7 +121,7 @@ export function initializeDatabase() {
       id: '2',
       roomNumber: '102',
       roomType: 'double',
-      capacity: 2,
+      capacity: { adults: 2, children: 1 },
       basePrice: 120,
       currentPrice: 120,
       status: 'occupied',
@@ -79,7 +134,7 @@ export function initializeDatabase() {
       id: '3',
       roomNumber: '201',
       roomType: 'suite',
-      capacity: 4,
+      capacity: { adults: 2, children: 2 },
       basePrice: 200,
       currentPrice: 200,
       status: 'available',
@@ -92,7 +147,7 @@ export function initializeDatabase() {
       id: '4',
       roomNumber: '202',
       roomType: 'deluxe',
-      capacity: 2,
+      capacity: { adults: 2, children: 1 },
       basePrice: 180,
       currentPrice: 180,
       status: 'maintenance',
@@ -102,6 +157,9 @@ export function initializeDatabase() {
       updatedAt: new Date().toISOString(),
     },
   ];
+
+  // Remove the duplicate roomTypes definition
+  // Sample room types (already defined above)
 
   // Sample bookings
   const bookings: Booking[] = [
@@ -197,6 +255,7 @@ export function initializeDatabase() {
   localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
   localStorage.setItem(DB_KEYS.BOOKINGS, JSON.stringify(bookings));
   localStorage.setItem(DB_KEYS.ROOMS, JSON.stringify(rooms));
+  localStorage.setItem(DB_KEYS.ROOM_TYPES, JSON.stringify(roomTypes));
   localStorage.setItem(DB_KEYS.AMENITIES, JSON.stringify(amenities));
   localStorage.setItem(DB_KEYS.SERVICES, JSON.stringify(services));
   localStorage.setItem(DB_KEYS.PRICING_RULES, JSON.stringify([]));
@@ -353,6 +412,35 @@ export function deleteService(id: string): void {
   if (typeof window === 'undefined') return;
   const services = getServices().filter(s => s.id !== id);
   localStorage.setItem(DB_KEYS.SERVICES, JSON.stringify(services));
+}
+
+// Room Type operations
+export function getRoomTypes(): RoomType[] {
+  if (typeof window === 'undefined') return [];
+  return JSON.parse(localStorage.getItem(DB_KEYS.ROOM_TYPES) || '[]');
+}
+
+export function getRoomTypeById(id: string): RoomType | null {
+  const roomTypes = getRoomTypes();
+  return roomTypes.find(rt => rt.id === id) || null;
+}
+
+export function saveRoomType(roomType: RoomType): void {
+  if (typeof window === 'undefined') return;
+  const roomTypes = getRoomTypes();
+  const index = roomTypes.findIndex(rt => rt.id === roomType.id);
+  if (index >= 0) {
+    roomTypes[index] = roomType;
+  } else {
+    roomTypes.push(roomType);
+  }
+  localStorage.setItem(DB_KEYS.ROOM_TYPES, JSON.stringify(roomTypes));
+}
+
+export function deleteRoomType(id: string): void {
+  if (typeof window === 'undefined') return;
+  const roomTypes = getRoomTypes().filter(rt => rt.id !== id);
+  localStorage.setItem(DB_KEYS.ROOM_TYPES, JSON.stringify(roomTypes));
 }
 
 // Session operations

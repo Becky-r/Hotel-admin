@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { getRooms, saveRoom } from '@/lib/db';
-import { Room } from '@/lib/types';
+import { useState, useEffect } from 'react';
+import { getRooms, saveRoom, getRoomTypes, saveRoomType } from '@/lib/db';
+import { Room, RoomType } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/select';
 import { Plus, Edit2, Image as ImageIcon } from 'lucide-react';
 import RoomForm from '@/components/forms/room-form';
+import RoomTypeForm from '@/components/forms/room-type-form';
+import SimpleRoomForm from '@/components/forms/simple-room-form';
 
 const roomStatusColors = {
   available: 'bg-green-100 text-green-800 border-green-300',
@@ -31,9 +33,15 @@ export default function RoomManagement() {
   const [filterType, setFilterType] = useState<string>('all');
 
   // === Room Type States ===
-  const [roomTypes, setRoomTypes] = useState<string[]>(['single', 'double', 'suite', 'deluxe']);
-  const [showTypeInput, setShowTypeInput] = useState(false);
-  const [newType, setNewType] = useState('');
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+
+  // Load room types on component mount
+  useEffect(() => {
+    setRoomTypes(getRoomTypes());
+  }, []);
+
+  const [showTypeForm, setShowTypeForm] = useState(false);
+  const [editingRoomType, setEditingRoomType] = useState<RoomType | null>(null);
 
   const filteredRooms = rooms.filter((room: Room) => {
     const matchesStatus = filterStatus === 'all' || room.status === filterStatus;
@@ -67,17 +75,34 @@ export default function RoomManagement() {
     }
   };
 
-  // === Add Room Type Handler ===
+  // === Room Type Handlers ===
   const handleAddRoomType = () => {
-    const type = newType.trim().toLowerCase();
-    if (!type) return;
-    if (!roomTypes.includes(type)) {
-      setRoomTypes([...roomTypes, type]);
-      setNewType('');
-      setShowTypeInput(false);
-    } else {
-      alert('Room type already exists');
+    setEditingRoomType(null);
+    setShowTypeForm(true);
+  };
+
+  const handleEditRoomType = (roomType: RoomType) => {
+    setEditingRoomType(roomType);
+    setShowTypeForm(true);
+  };
+
+  const handleSaveRoomType = (roomType: RoomType) => {
+    // Check for duplicate names (excluding the current room type being edited)
+    const existingRoomTypes = getRoomTypes();
+    const duplicate = existingRoomTypes.find(rt =>
+      rt.name.toLowerCase() === roomType.name.toLowerCase() &&
+      rt.id !== roomType.id
+    );
+
+    if (duplicate) {
+      alert(`A room type with the name "${roomType.name}" already exists. Please choose a different name.`);
+      return;
     }
+
+    saveRoomType(roomType);
+    setRoomTypes(getRoomTypes());
+    setShowTypeForm(false);
+    setEditingRoomType(null);
   };
 
   const roomStats = {
@@ -87,17 +112,41 @@ export default function RoomManagement() {
     maintenance: rooms.filter((r: Room) => r.status === 'maintenance').length,
   };
 
-  if (showForm) {
+  if (showTypeForm) {
     return (
-      <RoomForm
-        room={editingRoom}
-        roomTypes={roomTypes} // Pass dynamic room types
-        onSave={handleSaveRoom}
+      <RoomTypeForm
+        roomType={editingRoomType}
+        onSave={handleSaveRoomType}
         onCancel={() => {
-          setShowForm(false);
-          setEditingRoom(null);
+          setShowTypeForm(false);
+          setEditingRoomType(null);
         }}
       />
+    );
+  }
+
+  if (showForm) {
+    return (
+      editingRoom ? (
+        <RoomForm
+          room={editingRoom}
+          roomTypes={roomTypes.map(rt => rt.name)}
+          onSave={handleSaveRoom}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingRoom(null);
+          }}
+        />
+      ) : (
+        <SimpleRoomForm
+          roomTypes={roomTypes}
+          onSave={handleSaveRoom}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingRoom(null);
+          }}
+        />
+      )
     );
   }
 
@@ -120,26 +169,15 @@ export default function RoomManagement() {
           </Button>
 
           <Button
-            onClick={() => setShowTypeInput(!showTypeInput)}
+            onClick={handleAddRoomType}
             variant="outline"
-            className="gap-2"
+            className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            + Room Type
+            <Plus className="w-4 h-4" />
+             Room Type
           </Button>
         </div>
       </div>
-
-      {/* Inline input for new room type */}
-      {showTypeInput && (
-        <div className="flex gap-2 mt-2 max-w-sm">
-          <Input
-            placeholder="New room type"
-            value={newType}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewType(e.target.value)}
-          />
-          <Button onClick={handleAddRoomType}>Add</Button>
-        </div>
-      )}
 
       {/* Room Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -192,9 +230,9 @@ export default function RoomManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  {roomTypes.map((type: string) => (
-                    <SelectItem key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                  {roomTypes.map((type: RoomType) => (
+                    <SelectItem key={type.id} value={type.name}>
+                      {type.name.charAt(0).toUpperCase() + type.name.slice(1)}
                     </SelectItem>
                   ))}
                 </SelectContent>
