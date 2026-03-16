@@ -1,32 +1,23 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { User as UserType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useState, useEffect } from 'react';
-import { useTheme } from 'next-themes';
-import {
-  Shield,
-  Image,
-  Bell,
-  History,
-  Monitor,
-  Mail,
-  Moon,
-  Globe,
-  Lock,
-  LogOut,
-  Settings,
-  Trash2,
-  Link,
-  Upload,
-  CheckCircle,
-  XCircle,
-  User
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Shield, Image as ImageIcon, Bell, History, Monitor, Mail, 
+  Moon, Globe, Lock, LogOut, Settings, Trash2, Link as LinkIcon, 
+  CheckCircle, XCircle, User, Eye, EyeOff, KeyRound, Smartphone,
+  Facebook, Instagram, Github, AlertTriangle
 } from 'lucide-react';
 
 interface AccountProps {
@@ -36,393 +27,323 @@ interface AccountProps {
 export default function Account({ user }: AccountProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-  // State for each feature
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: false,
-    sms: false
-  });
-  const [activityHistory, setActivityHistory] = useState<string[]>([]);
-  const [devices, setDevices] = useState<string[]>(['Current Device']);
-  const [emailVerified, setEmailVerified] = useState(true);
-  const [phoneVerified, setPhoneVerified] = useState(false);
-  const [language, setLanguage] = useState('en');
-  const [privacySettings, setPrivacySettings] = useState({
-    profileVisible: true,
-    dataSharing: false
-  });
-  const [sessions, setSessions] = useState<string[]>(['Current Session']);
-  const [dashboardLayout, setDashboardLayout] = useState('default');
-  const [socialAccounts, setSocialAccounts] = useState<string[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('accountSettings');
-    if (saved) {
-      try {
-        const settings = JSON.parse(saved);
-        setTwoFAEnabled(settings.twoFAEnabled || false);
-        setNotifications(settings.notifications || notifications);
-        setLanguage(settings.language || 'en');
-        setPrivacySettings(settings.privacySettings || privacySettings);
-        setDashboardLayout(settings.dashboardLayout || 'default');
-        setSocialAccounts(settings.socialAccounts || []);
-      } catch (e) {
-        console.error('Error loading settings', e);
-      }
-    }
-  }, []);
-
-  // Save to localStorage
-  const saveSettings = () => {
-    const settings = {
-      twoFAEnabled,
-      notifications,
-      language,
-      privacySettings,
-      dashboardLayout,
-      socialAccounts
-    };
-    try {
-      localStorage.setItem('accountSettings', JSON.stringify(settings));
-    } catch (e) {
-      console.error('Error saving settings', e);
-    }
+  // Password strength calculation
+  const getStrength = (pwd: string) => {
+    let strength = 0;
+    if (pwd.length > 8) strength += 25;
+    if (/[A-Z]/.test(pwd)) strength += 25;
+    if (/[0-9]/.test(pwd)) strength += 25;
+    if (/[^A-Za-z0-9]/.test(pwd)) strength += 25;
+    return strength;
   };
 
-  useEffect(() => {
-    if (mounted) {
-      saveSettings();
-    }
-  }, [twoFAEnabled, notifications, language, privacySettings, dashboardLayout, socialAccounts, mounted]);
-
-  // Handlers
-  const handleProfilePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setProfilePicture(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleLogoutAll = () => {
-    setSessions(['Current Session']);
-    alert('Logged out from all devices');
-  };
-
-  const handleDeleteAccount = () => {
-    alert('Account deletion initiated. This is a demo.');
-  };
-
-  const connectSocial = (platform: string) => {
-    if (!socialAccounts.includes(platform)) {
-      setSocialAccounts([...socialAccounts, platform]);
-    }
-  };
-
-  const disconnectSocial = (platform: string) => {
-    setSocialAccounts(socialAccounts.filter(acc => acc !== platform));
-  };
-
-  const features = [
-    {
-      icon: Shield,
-      title: 'Two-Factor Authentication (2FA) security',
-      description: 'Add an extra layer of security to your account with 2FA.',
-      component: (
-        <div className="flex items-center space-x-2">
-          <Switch checked={twoFAEnabled} onCheckedChange={setTwoFAEnabled} />
-          <span>{twoFAEnabled ? 'Enabled' : 'Disabled'}</span>
-        </div>
-      )
-    },
-    {
-      icon: Image,
-      title: 'Profile picture customization',
-      description: 'Upload and customize your profile picture.',
-      component: (
-        <div className="space-y-2">
-          {profilePicture && <img src={profilePicture} alt="Profile" className="w-16 h-16 rounded-full" />}
-          <Input type="file" accept="image/*" onChange={handleProfilePictureUpload} />
-        </div>
-      )
-    },
-    {
-      icon: Bell,
-      title: 'Advanced notification settings',
-      description: 'Customize how and when you receive notifications.',
-      component: (
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Switch checked={notifications.email} onCheckedChange={(checked) => setNotifications({...notifications, email: checked})} />
-            <Label>Email notifications</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch checked={notifications.push} onCheckedChange={(checked) => setNotifications({...notifications, push: checked})} />
-            <Label>Push notifications</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch checked={notifications.sms} onCheckedChange={(checked) => setNotifications({...notifications, sms: checked})} />
-            <Label>SMS notifications</Label>
-          </div>
-        </div>
-      )
-    },
-    {
-      icon: History,
-      title: 'Account activity history',
-      description: 'View a log of your account activities and changes.',
-      component: (
-        <div>
-          <p>Recent activities:</p>
-          <ul className="list-disc list-inside">
-            {activityHistory.length > 0 ? activityHistory.map((act, i) => <li key={i}>{act}</li>) : <li>No recent activity</li>}
-          </ul>
-        </div>
-      )
-    },
-    {
-      icon: Monitor,
-      title: 'Login device management',
-      description: 'Manage devices that are logged into your account.',
-      component: (
-        <div>
-          <p>Logged in devices:</p>
-          <ul className="list-disc list-inside">
-            {devices.map((device, i) => <li key={i}>{device}</li>)}
-          </ul>
-        </div>
-      )
-    },
-    {
-      icon: Mail,
-      title: 'Email and phone verification',
-      description: 'Verify your email and phone number for security.',
-      component: (
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            {emailVerified ? <CheckCircle className="text-green-500" /> : <XCircle className="text-red-500" />}
-            <span>Email: {emailVerified ? 'Verified' : 'Not verified'}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            {phoneVerified ? <CheckCircle className="text-green-500" /> : <XCircle className="text-red-500" />}
-            <span>Phone: {phoneVerified ? 'Verified' : 'Not verified'}</span>
-          </div>
-        </div>
-      )
-    },
-    {
-      icon: Moon,
-      title: 'Dark mode preference',
-      description: 'Switch between light and dark themes.',
-      component: mounted ? (
-        <div className="flex items-center space-x-2">
-          <Switch checked={theme === 'dark'} onCheckedChange={(checked) => setTheme?.(checked ? 'dark' : 'light')} />
-          <span>{theme === 'dark' ? 'Dark' : 'Light'} mode</span>
-        </div>
-      ) : (
-        <div>Loading theme...</div>
-      )
-    },
-    {
-      icon: Globe,
-      title: 'Language selection',
-      description: 'Choose your preferred language for the interface.',
-      component: (
-        <Select value={language} onValueChange={setLanguage}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select language" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="es">Spanish</SelectItem>
-            <SelectItem value="fr">French</SelectItem>
-          </SelectContent>
-        </Select>
-      )
-    },
-    {
-      icon: Lock,
-      title: 'Privacy and security settings',
-      description: 'Control your privacy and security preferences.',
-      component: (
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <Switch checked={privacySettings.profileVisible} onCheckedChange={(checked) => setPrivacySettings({...privacySettings, profileVisible: checked})} />
-            <Label>Profile visible to others</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch checked={privacySettings.dataSharing} onCheckedChange={(checked) => setPrivacySettings({...privacySettings, dataSharing: checked})} />
-            <Label>Data sharing</Label>
-          </div>
-        </div>
-      )
-    },
-    {
-      icon: LogOut,
-      title: 'Session management (logout from all devices)',
-      description: 'Log out from all devices where you are signed in.',
-      component: (
-        <Button variant="destructive" onClick={handleLogoutAll}>
-          Logout from all devices
-        </Button>
-      )
-    },
-    {
-      icon: Settings,
-      title: 'Personal dashboard customization',
-      description: 'Customize your dashboard layout and widgets.',
-      component: (
-        <Select value={dashboardLayout} onValueChange={setDashboardLayout}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select layout" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="default">Default</SelectItem>
-            <SelectItem value="compact">Compact</SelectItem>
-            <SelectItem value="detailed">Detailed</SelectItem>
-          </SelectContent>
-        </Select>
-      )
-    },
-    {
-      icon: Trash2,
-      title: 'Account deletion or deactivation option',
-      description: 'Permanently delete or temporarily deactivate your account.',
-      component: (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">Delete Account</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your account.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteAccount}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )
-    },
-    {
-      icon: Link,
-      title: 'Connected social accounts (Facebook, TikTok, Instagram)',
-      description: 'Connect and manage your social media accounts.',
-      component: (
-        <div className="space-y-2">
-          {['Facebook', 'TikTok', 'Instagram'].map(platform => (
-            <div key={platform} className="flex items-center justify-between">
-              <span>{platform}</span>
-              {socialAccounts.includes(platform) ? (
-                <Button variant="outline" onClick={() => disconnectSocial(platform)}>Disconnect</Button>
-              ) : (
-                <Button onClick={() => connectSocial(platform)}>Connect</Button>
-              )}
-            </div>
-          ))}
-        </div>
-      )
-    }
-  ];
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
 
   return (
-    <div className="space-y-6">
-      <header className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-8 border border-primary/20">
-        <div className="relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
-              <Shield className="h-8 w-8" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-bold text-foreground">Account Settings</h2>
-              <p className="text-muted-foreground mt-1">Manage your account preferences and security settings</p>
-            </div>
-          </div>
-          <div className="mt-6 flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span>{user.name}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              <span>{user.email}</span>
-            </div>
-          </div>
-        </div>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-16 translate-x-16"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-full translate-y-12 -translate-x-12"></div>
-      </header>
-
-      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map((feature, index) => {
-          const Icon = feature.icon;
-          return (
-            <div key={index} className="group relative overflow-hidden rounded-xl border border-border/50 bg-gradient-to-br from-background to-muted/20 p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/20 hover:scale-[1.02]">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative z-10">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="h-6 w-6" />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-6 pt-4 border-t border-border/30">
-                  {feature.component}
-                </div>
+    <div className="max-w-6xl mx-auto pb-20 px-4">
+      {/* Hero Header */}
+      <div className="relative mb-8 p-8 rounded-3xl bg-slate-900 text-white overflow-hidden shadow-2xl">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+          <div className="relative group">
+            <div className="h-24 w-24 rounded-2xl bg-gradient-to-tr from-primary to-blue-400 p-0.5 shadow-xl">
+              <div className="h-full w-full rounded-2xl bg-slate-800 flex items-center justify-center overflow-hidden">
+                {profilePicture ? (
+                  <img src={profilePicture} alt="Profile" className="object-cover h-full w-full" />
+                ) : (
+                  <User className="h-10 w-10 text-slate-400" />
+                )}
               </div>
             </div>
-          );
-        })}
-      </section>
-
-      <div className="rounded-xl border border-border/50 bg-gradient-to-br from-background to-muted/10 p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <User className="h-5 w-5" />
+            <label className="absolute -bottom-2 -right-2 p-2 bg-primary rounded-xl cursor-pointer hover:scale-110 transition-all shadow-lg border-2 border-slate-900">
+              <ImageIcon className="h-4 w-4 text-white" />
+              <input type="file" className="hidden" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = () => setProfilePicture(reader.result as string);
+                  reader.readAsDataURL(file);
+                }
+              }} />
+            </label>
           </div>
-          <h3 className="text-xl font-semibold text-foreground">Account Information</h3>
+          
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">{user.name}</h1>
+              <Badge variant="secondary" className="bg-white/10 text-white border-none text-[10px] uppercase font-bold tracking-wider">
+                {user.role}
+              </Badge>
+              <Badge variant="outline" className="border-green-500/50 text-green-400 text-[10px] uppercase font-bold bg-green-500/10">
+                Verified
+              </Badge>
+            </div>
+            <p className="text-slate-400 flex items-center gap-2 text-sm italic">
+              <Mail className="h-3 w-3" /> {user.email}
+            </p>
+          </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">User ID</p>
-            <p className="text-sm font-mono break-all text-foreground">{user.id}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Account Created</p>
-            <p className="text-sm text-foreground">{new Date(user.createdAt).toLocaleDateString()}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Role</p>
-            <p className="text-sm text-foreground capitalize">{user.role}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email</p>
-            <p className="text-sm text-foreground">{user.email}</p>
-          </div>
-        </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
       </div>
+
+      <Tabs defaultValue="general" className="flex flex-col md:flex-row gap-8">
+        {/* Navigation Sidebar */}
+        <TabsList className="flex flex-col h-auto bg-transparent gap-1 w-full md:w-64">
+          {[
+            { id: 'general', label: 'Preferences', icon: Settings },
+            { id: 'security', label: 'Security & Password', icon: Shield },
+            { id: 'connected', label: 'Connected Apps', icon: LinkIcon },
+            { id: 'danger', label: 'Privacy & Danger', icon: Trash2 },
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className="w-full justify-start gap-3 px-4 py-3 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm transition-all"
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <div className="flex-1 space-y-6">
+          {/* GENERAL PREFERENCES TAB */}
+          <TabsContent value="general" className="mt-0 space-y-6">
+            <Card className="border-none shadow-md ring-1 ring-slate-200 dark:ring-slate-800">
+              <CardHeader>
+                <CardTitle>Appearance & Locale</CardTitle>
+                <CardDescription>Customize how the platform looks and feels for you.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Dark Mode</Label>
+                    <p className="text-sm text-muted-foreground">Toggle between light and dark themes.</p>
+                  </div>
+                  <Switch 
+                    checked={theme === 'dark'} 
+                    onCheckedChange={(checked) => setTheme?.(checked ? 'dark' : 'light')} 
+                  />
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <Label>Language Selection</Label>
+                  <Select defaultValue="en">
+                    <SelectTrigger className="w-full md:w-[200px]">
+                      <SelectValue placeholder="Select Language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">English (US)</SelectItem>
+                      <SelectItem value="es">Español</SelectItem>
+                      <SelectItem value="fr">Français</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-md ring-1 ring-slate-200 dark:ring-slate-800">
+              <CardHeader>
+                <CardTitle>Layout Preference</CardTitle>
+              </CardHeader>
+              <CardContent>
+                 <div className="grid grid-cols-3 gap-4">
+                    {['Default', 'Compact', 'Detailed'].map((layout) => (
+                      <button key={layout} className="p-4 rounded-xl border-2 border-muted hover:border-primary transition-all text-center group">
+                        <Monitor className="h-6 w-6 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
+                        <span className="text-xs font-medium">{layout}</span>
+                      </button>
+                    ))}
+                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* SECURITY & PASSWORD TAB */}
+          <TabsContent value="security" className="mt-0 space-y-6">
+            <Card className="border-none shadow-md ring-1 ring-slate-200 dark:ring-slate-800">
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-1">
+                  <KeyRound className="h-5 w-5 text-primary" />
+                  <CardTitle>Change Password</CardTitle>
+                </div>
+                <CardDescription>Secure your account with a unique password.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="current">Current Password</Label>
+                  <Input id="current" type="password" placeholder="••••••••" className="max-w-md" />
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new">New Password</Label>
+                    <div className="relative">
+                      <Input 
+                        id="new" 
+                        type={showPassword ? "text" : "password"} 
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Min. 8 chars" 
+                      />
+                      <button 
+                        type="button"
+                        className="absolute right-3 top-2.5 text-slate-400 hover:text-primary transition-colors"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
+                      </button>
+                    </div>
+                    {/* Password Strength Indicator */}
+                    <div className="flex gap-1 mt-2">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div 
+                          key={i} 
+                          className={`h-1 flex-1 rounded-full transition-all duration-500 ${
+                            getStrength(newPassword) >= i * 25 ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'
+                          }`} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm">Confirm Password</Label>
+                    <Input id="confirm" type="password" placeholder="Confirm new password" />
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="border-t bg-slate-50/50 dark:bg-slate-900/50 px-6 py-4 flex justify-end">
+                <Button size="sm" className="rounded-lg shadow-lg shadow-primary/20">Update Password</Button>
+              </CardFooter>
+            </Card>
+
+            <Card className="border-none shadow-md ring-1 ring-slate-200 dark:ring-slate-800">
+              <CardHeader>
+                <CardTitle className="text-sm font-semibold">Security Health</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                  <div className="flex gap-4 items-center">
+                    <div className="p-2.5 bg-white dark:bg-slate-900 rounded-xl shadow-sm">
+                      <Smartphone className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold">Two-Factor Authentication</p>
+                      <p className="text-xs text-muted-foreground">Verify via SMS or Authenticator App</p>
+                    </div>
+                  </div>
+                  <Switch checked={twoFAEnabled} onCheckedChange={setTwoFAEnabled} />
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold uppercase text-slate-400 flex items-center gap-2 tracking-widest">
+                    <History className="h-3 w-3" /> Recent Security Events
+                  </h4>
+                  <div className="rounded-xl border divide-y overflow-hidden">
+                    {[
+                      { event: 'Password Changed', date: '2 hours ago', icon: CheckCircle, color: 'text-green-500' },
+                      { event: 'New Login: Chrome on Windows', date: 'Oct 24, 2025', icon: Monitor, color: 'text-blue-500' },
+                      { event: 'Failed Login Attempt', date: 'Oct 20, 2025', icon: AlertTriangle, color: 'text-red-500' },
+                    ].map((log, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 text-sm bg-white dark:bg-slate-900/50">
+                        <div className="flex items-center gap-3">
+                          <log.icon className={`h-4 w-4 ${log.color}`} />
+                          <span>{log.event}</span>
+                        </div>
+                        <span className="text-xs text-slate-400">{log.date}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                   <h4 className="text-sm font-medium">Logged in Devices</h4>
+                   <div className="space-y-2">
+                    {['MacBook Pro - New York, USA', 'iPhone 15 - London, UK'].map((device, i) => (
+                      <div key={i} className="flex items-center justify-between text-sm p-3 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-3">
+                          <Monitor className="h-4 w-4 text-muted-foreground" />
+                          {device}
+                        </div>
+                        {i === 0 && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">Current</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="bg-muted/30 py-4">
+                <Button variant="outline" className="w-full rounded-xl">
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out of all other sessions
+                </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          {/* CONNECTIONS TAB */}
+          <TabsContent value="connected" className="mt-0">
+            <Card className="border-none shadow-md ring-1 ring-slate-200 dark:ring-slate-800">
+              <CardHeader>
+                <CardTitle>Connected Social Accounts</CardTitle>
+                <CardDescription>Speed up your login process by linking accounts.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  { name: 'Github', icon: Github, color: 'group-hover:text-white group-hover:bg-slate-800', connected: true },
+                  { name: 'Instagram', icon: Instagram, color: 'group-hover:text-white group-hover:bg-pink-600', connected: false },
+                  { name: 'Facebook', icon: Facebook, color: 'group-hover:text-white group-hover:bg-blue-600', connected: false },
+                ].map((social) => (
+                  <div key={social.name} className="flex items-center justify-between p-4 border rounded-2xl hover:border-primary/50 transition-colors group">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-2 rounded-lg bg-slate-100 dark:bg-slate-800 ${social.color} transition-all`}>
+                        <social.icon className="h-5 w-5" />
+                      </div>
+                      <span className="font-medium">{social.name}</span>
+                    </div>
+                    <Button variant={social.connected ? "outline" : "default"} size="sm" className="rounded-xl">
+                      {social.connected ? 'Disconnect' : 'Link Account'}
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* DANGER ZONE TAB */}
+          <TabsContent value="danger" className="mt-0">
+            <Card className="border-red-200 bg-red-50/30 dark:bg-red-950/10 dark:border-red-900 shadow-md">
+              <CardHeader>
+                <CardTitle className="text-red-600">Account Destruction</CardTitle>
+                <CardDescription>This will permanently erase all your data. This cannot be undone.</CardDescription>
+              </CardHeader>
+              <CardFooter>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="rounded-xl">Delete Account Forever</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-2xl">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete your profile and remove all your data from our servers. 
+                        This action is irreversible.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                      <AlertDialogAction className="bg-red-600 hover:bg-red-700 rounded-xl">Confirm Deletion</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        </div>
+      </Tabs>
     </div>
   );
 }

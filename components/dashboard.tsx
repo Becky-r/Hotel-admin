@@ -33,6 +33,7 @@ interface DashboardProps {
 
 export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [activeSection, setActiveSection] = useState<Section>('overview');
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const renderSection = () => {
     switch (activeSection) {
@@ -62,9 +63,9 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
-        <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} userRole={user.role} />
-        <main className="ml-64 flex-1 flex flex-col">
-          <Header userName={user.name} userRole={user.role} onLogout={onLogout} />
+        <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} userRole={user.role} isMinimized={isMinimized} onToggleMinimize={() => setIsMinimized(!isMinimized)} />
+        <main className={`${isMinimized ? 'ml-16' : 'ml-64'} flex-1 flex flex-col`}>
+          <Header userName={user.name} userRole={user.role} onLogout={onLogout} isMinimized={isMinimized} />
           <div className="flex-1 overflow-auto mt-16">
             <div className="p-6 max-w-7xl mx-auto">
               {renderSection()}
