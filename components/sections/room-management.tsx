@@ -22,7 +22,7 @@ const roomStatusColors = {
   available: 'bg-green-100 text-green-800 border-green-300',
   occupied: 'bg-blue-100 text-blue-800 border-blue-300',
   maintenance: 'bg-orange-100 text-orange-800 border-orange-300',
-  blocked: 'bg-red-100 text-red-800 border-red-300',
+  outofservice: 'bg-red-100 text-red-800 border-red-300',
 };
 
 export default function RoomManagement() {
@@ -250,7 +250,7 @@ export default function RoomManagement() {
                   <SelectItem value="available">Available</SelectItem>
                   <SelectItem value="occupied">Occupied</SelectItem>
                   <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="blocked">Blocked</SelectItem>
+                  <SelectItem value="Outofservice">Out of service</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -327,7 +327,7 @@ export default function RoomManagement() {
                       <SelectItem value="available">Available</SelectItem>
                       <SelectItem value="occupied">Occupied</SelectItem>
                       <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="blocked">Blocked</SelectItem>
+                      <SelectItem value="Outofservice">Out of service</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

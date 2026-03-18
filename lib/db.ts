@@ -202,7 +202,7 @@ export function initializeDatabase() {
       id: '1',
       name: 'WiFi',
       description: 'High speed wireless internet throughout the property',
-      category: 'Room',
+      
       active: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -211,7 +211,7 @@ export function initializeDatabase() {
       id: '2',
       name: 'Breakfast Buffet',
       description: 'Complimentary breakfast served daily',
-      category: 'Food',
+     
       active: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -220,7 +220,7 @@ export function initializeDatabase() {
       id: '3',
       name: 'Parking',
       description: 'Free on-site parking for guests',
-      category: 'Facility',
+     
       active: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

@@ -17,7 +17,7 @@ export interface Booking {
   roomId: string; // Primary room ID for backward compatibility
   checkInDate: string;
   checkOutDate: string;
-  status: 'pending' | 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'checked-in' | 'checked-out' | 'no-show' |'cancelled';
   numberOfGuests: number;
   totalPrice: number;
   bookingType: 'online' | 'manual' | 'walkin';
@@ -59,7 +59,7 @@ export interface Room {
   };
   basePrice: number;
   currentPrice: number;
-  status: 'available' | 'occupied' | 'maintenance' | 'blocked';
+  status: 'available' | 'occupied' | 'maintenance' | 'Outofservice';
   amenities: string[];
   floor: number;
   image?: string; // Room image URL/path
@@ -140,7 +140,7 @@ export interface Amenity {
   id: string;
   name: string;
   description?: string;
-  category?: string;
+  
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -150,7 +150,7 @@ export interface Amenity {
 export interface Service {
   id: string;
   name: string;
-  description?: string;
+ 
   category?: string;
   price: number;
   durationMinutes?: number;

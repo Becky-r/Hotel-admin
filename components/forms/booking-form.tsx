@@ -31,6 +31,7 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
     adults: number;
     children: number;
     rooms: BookingRoom[];
+    packageAmount: number; // Added
   }>(() => {
     if (booking) {
       const [firstName = '', ...lastParts] = booking.guestName?.split(' ') || [];
@@ -43,6 +44,7 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
         tinNumber: booking.tinNumber || '',
         adults: booking.adults || booking.numberOfGuests || 1,
         children: booking.children || 0,
+        packageAmount: booking.packageAmount || 0, // Initialize
         rooms: booking.rooms || (booking.roomId ? [{
           id: booking.roomId,
           roomNumber: booking.roomNumber || '',
@@ -69,6 +71,7 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
       tinNumber: '',
       adults: 1,
       children: 0,
+      packageAmount: 0, // Default
       rooms: [],
     };
   });
@@ -83,32 +86,31 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
     return [];
   }, [formData.checkInDate, formData.checkOutDate]);
 
-  // Filter available rooms (not already selected)
   const availableRoomsFiltered = useMemo(() => {
     const selectedRoomIds = formData.rooms.map(r => r.id);
     return availableRooms.filter(room => !selectedRoomIds.includes(room.id));
   }, [availableRooms, formData.rooms]);
 
-  // Filter room types for selected room number
   const roomTypesForSelectedNumber = useMemo(() => {
     if (!currentRoomNumber) return [];
     return availableRoomsFiltered.filter(room => room.roomNumber === currentRoomNumber);
   }, [availableRoomsFiltered, currentRoomNumber]);
 
-  // Calculate total price for all selected rooms
+  // Updated to include packageAmount
   const calculateTotalPrice = useMemo(() => {
     if (!formData.checkInDate || !formData.checkOutDate) return 0;
     const checkIn = new Date(formData.checkInDate);
     const checkOut = new Date(formData.checkOutDate);
     const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
 
-    return formData.rooms.reduce((total, room) => {
+    const roomCost = formData.rooms.reduce((total, room) => {
       const roomData = availableRooms.find(r => r.id === room.id);
       return total + (roomData ? roomData.currentPrice * nights : room.price * nights);
     }, 0);
-  }, [formData.rooms, formData.checkInDate, formData.checkOutDate, availableRooms]);
 
-  // Add room to selection
+    return roomCost + (formData.packageAmount || 0);
+  }, [formData.rooms, formData.checkInDate, formData.checkOutDate, formData.packageAmount, availableRooms]);
+
   const addRoom = () => {
     if (!currentRoomNumber || !currentRoomType) return;
 
@@ -125,22 +127,20 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
     setFormData({
       ...formData,
       rooms: [...formData.rooms, bookingRoom],
-      roomId: formData.rooms.length === 0 ? room.id : formData.roomId, // Set primary room ID
-      roomNumber: formData.rooms.length === 0 ? room.roomNumber : formData.roomNumber, // Set primary room number
-      roomType: formData.rooms.length === 0 ? room.roomType : formData.roomType, // Set primary room type
+      roomId: formData.rooms.length === 0 ? room.id : formData.roomId,
+      roomNumber: formData.rooms.length === 0 ? room.roomNumber : formData.roomNumber,
+      roomType: formData.rooms.length === 0 ? room.roomType : formData.roomType,
     });
 
     setCurrentRoomNumber('');
     setCurrentRoomType('');
   };
 
-  // Remove room from selection
   const removeRoom = (roomId: string) => {
     const updatedRooms = formData.rooms.filter(r => r.id !== roomId);
     setFormData({
       ...formData,
       rooms: updatedRooms,
-      // Update primary room if the primary room was removed
       roomId: updatedRooms.length > 0 ? updatedRooms[0].id : '',
       roomNumber: updatedRooms.length > 0 ? updatedRooms[0].roomNumber : '',
       roomType: updatedRooms.length > 0 ? updatedRooms[0].roomType : '',
@@ -167,6 +167,7 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
       status: (formData.status as any) || 'pending',
       numberOfGuests: (formData.adults || 0) + (formData.children || 0),
       totalPrice: calculateTotalPrice,
+      packageAmount: formData.packageAmount, // Ensure it is saved
       bookingType: (formData.bookingType as any) || 'manual',
       specialRequests: formData.specialRequests,
       paymentStatus: (formData.paymentStatus as any) || 'pending',
@@ -205,7 +206,6 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* First & Last Name */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">First Name *</label>
                 <Input
@@ -227,7 +227,6 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
                 />
               </div>
 
-              {/* Company & TIN */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Company Name</label>
                 <Input
@@ -247,7 +246,6 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
                 />
               </div>
 
-              {/* Email & Phone */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email *</label>
                 <Input
@@ -271,14 +269,13 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
                 />
               </div>
 
-              {/* Adults & Children */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Adults *</label>
                 <Input
                   type="number"
                   min={0}
                   value={formData.adults}
-                  onChange={(e) => setFormData({ ...formData, adults: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, adults: parseInt(e.target.value) || 0 })}
                   className="bg-input border-border"
                 />
               </div>
@@ -288,13 +285,12 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
                   type="number"
                   min={0}
                   value={formData.children}
-                  onChange={(e) => setFormData({ ...formData, children: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, children: parseInt(e.target.value) || 0 })}
                   className="bg-input border-border"
                 />
               </div>
             </div>
 
-            {/* Booking Details */}
             <div className="border-t border-border pt-6 space-y-6">
               <h3 className="font-semibold text-foreground">Booking Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -320,116 +316,95 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
                 </div>
               </div>
 
-              {/* Room Selection */}
-<div className="space-y-6">
-  <div className="flex items-center justify-between border-b border-border pb-2">
-    <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-      Room Inventory ({formData.rooms.length})
-    </h4>
-    <div className="flex items-center gap-2 text-sm font-medium">
-      <span className="text-muted-foreground font-normal">Subtotal:</span>
-      <span className="text-foreground">${calculateTotalPrice.toFixed(2)}</span>
-    </div>
-  </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium text-foreground">Selected Rooms ({formData.rooms.length})</h4>
+                  <div className="text-sm text-muted-foreground">
+                    Rooms Subtotal: ${ (calculateTotalPrice - formData.packageAmount).toFixed(2) }
+                  </div>
+                </div>
 
-  {/* Selected Rooms Table-style List */}
-  <div className="space-y-1">
-    {formData.rooms.length > 0 ? (
-      formData.rooms.map((room) => (
-        <div 
-          key={room.id} 
-          className="group flex items-center justify-between p-4 rounded-xl border border-transparent hover:border-border hover:bg-secondary/30 transition-all"
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold">
-              {room.roomNumber}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">{room.roomType}</p>
-              <p className="text-xs text-muted-foreground">${room.price.toFixed(2)} per night</p>
-            </div>
-          </div>
-          
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => removeRoom(room.id)}
-            className="opacity-0 group-hover:opacity-100 h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-full transition-opacity"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      ))
-    ) : (
-      <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-border rounded-xl bg-secondary/10">
-        <p className="text-sm text-muted-foreground">No rooms selected yet</p>
-      </div>
-    )}
-  </div>
+                {formData.rooms.length > 0 && (
+                  <div className="space-y-2">
+                    {formData.rooms.map((room) => (
+                      <div key={room.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg border">
+                        <div>
+                          <span className="font-medium">{room.roomNumber}</span>
+                          <span className="text-muted-foreground ml-2">({room.roomType})</span>
+                          <span className="text-muted-foreground ml-2">${room.price}/night</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeRoom(room.id)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-  {/* Add Room Section - Streamlined Bar */}
-  <div className="mt-4 p-4 rounded-xl bg-secondary/50 border border-border shadow-sm">
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-      <div className="md:col-span-5 space-y-1.5">
-        <label className="text-xs font-bold text-muted-foreground uppercase">Room Selection</label>
-        <Select
-          value={currentRoomNumber}
-          onValueChange={(value) => {
-            setCurrentRoomNumber(value);
-            setCurrentRoomType('');
-          }}
-        >
-          <SelectTrigger className="bg-background border-border h-11">
-            <SelectValue placeholder="Pick a room..." />
-          </SelectTrigger>
-          <SelectContent>
-            {availableRoomsFiltered.map(room => (
-              <SelectItem key={room.id} value={room.roomNumber}>
-                <span className="font-medium">{room.roomNumber}</span>
-                <span className="ml-2 text-muted-foreground">({room.roomType})</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+                <div className="border-t border-border pt-4">
+                  <h4 className="font-medium text-foreground mb-3">Add Room</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Room Number</label>
+                      <Select
+                        value={currentRoomNumber}
+                        onValueChange={(value) => {
+                          setCurrentRoomNumber(value);
+                          setCurrentRoomType('');
+                        }}
+                      >
+                        <SelectTrigger className="bg-input border-border">
+                          <SelectValue placeholder="Select room" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableRoomsFiltered.map(room => (
+                            <SelectItem key={room.id} value={room.roomNumber}>
+                              {room.roomNumber} ({room.roomType})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Room Type</label>
+                      <Select
+                        value={currentRoomType}
+                        onValueChange={setCurrentRoomType}
+                        disabled={!currentRoomNumber}
+                      >
+                        <SelectTrigger className="bg-input border-border">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roomTypesForSelectedNumber.map(room => (
+                            <SelectItem key={room.id} value={room.roomType}>
+                              {room.roomType} (${room.currentPrice}/night)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        type="button"
+                        onClick={addRoom}
+                        disabled={!currentRoomNumber || !currentRoomType}
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Room
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-      <div className="md:col-span-4 space-y-1.5">
-        <label className="text-xs font-bold text-muted-foreground uppercase">Rate Type</label>
-        <Select
-          value={currentRoomType}
-          onValueChange={setCurrentRoomType}
-          disabled={!currentRoomNumber}
-        >
-          <SelectTrigger className="bg-background border-border h-11">
-            <SelectValue placeholder="Select type" />
-          </SelectTrigger>
-          <SelectContent>
-            {roomTypesForSelectedNumber.map(room => (
-              <SelectItem key={room.id} value={room.roomType}>
-                {room.roomType} — ${room.currentPrice}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="md:col-span-3">
-        <Button
-          type="button"
-          onClick={addRoom}
-          disabled={!currentRoomNumber || !currentRoomType}
-          className="w-full h-11 gap-2 shadow-sm transition-transform active:scale-95"
-        >
-          <Plus className="h-4 w-4" />
-          Add to Booking
-        </Button>
-      </div>
-    </div>
-  </div>
-</div>
-
-              {/* Booking Type, Status & Payment */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Booking Type *</label>
@@ -485,30 +460,32 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
                 </div>
               </div>
 
-              
-                    {/* ✅ USER AMOUNT FIELD */}
-            <div>
-              <label className="text-sm font-medium">Custom Amount</label>
-              <Input
-                type="number"
-                value={formData.userAmount || ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    userAmount: parseFloat(e.target.value) || 0,
-                  })
-                }
-                placeholder="Override total price"
-              />
-            </div>
+              {/* Package Amount Field */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border pt-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Package / Extra Amount</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={formData.packageAmount}
+                      onChange={(e) => setFormData({ ...formData, packageAmount: parseFloat(e.target.value) || 0 })}
+                      className="pl-7 bg-input border-border"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Total Price */}
               <div className="bg-secondary/50 p-4 rounded-lg border border-border">
-                <p className="text-sm text-muted-foreground">Total Price</p>
-                <p className="text-3xl font-bold text-foreground">${calculateTotalPrice}</p>
+                <p className="text-sm text-muted-foreground">Total Price (Rooms + Package)</p>
+                <p className="text-3xl font-bold text-foreground">${calculateTotalPrice.toFixed(2)}</p>
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex gap-3 border-t border-border pt-6">
               <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
                 {booking ? 'Update Booking' : 'Create Booking'}
