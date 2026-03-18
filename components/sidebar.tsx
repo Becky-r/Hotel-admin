@@ -66,7 +66,7 @@ export default function Sidebar({ activeSection, onSectionChange, userRole, isMi
         "fixed top-0 left-0 h-screen flex flex-col transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-50",
         "bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50",
         "shadow-[20px_0_50px_rgba(0,0,0,0.05)] dark:shadow-[20px_0_50px_rgba(0,0,0,0.3)]",
-        isMinimized ? "w-20" : "w-64"
+        isMinimized ? "w-25" : "w-64"
       )}
     >
       {/* 3D Toggle Handle */}
@@ -94,7 +94,7 @@ export default function Sidebar({ activeSection, onSectionChange, userRole, isMi
       </div>
 
       {/* 3D Navigation Body */}
-      <nav className="flex-1 px-4 space-y-3 overflow-y-auto no-scrollbar py-6">
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar py-6">
         {menuItems.map(item => {
           const isActive = activeSection === item.id;
           const Icon = item.icon;

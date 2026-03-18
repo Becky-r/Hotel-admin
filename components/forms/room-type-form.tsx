@@ -18,11 +18,12 @@ interface RoomTypeFormProps {
 const availableAmenities = ['WiFi', 'AC', 'TV', 'Bathtub', 'Kitchen', 'Gym Access', 'Balcony', 'Safe', 'Mini Bar', 'Desk', 'Coffee Maker', 'Hair Dryer', 'Iron', 'Laundry Service', 'Room Service'];
 
 export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFormProps) {
-  const [formData, setFormData] = useState<Partial<RoomType>>(
+  const [formData, setFormData] = useState<Partial<RoomType & { floor?: string }>>(
     roomType || {
       name: '',
       description: '',
       basePrice: 0,
+      floor: '', // Added floor to initial state
       capacity: {
         adults: 1,
         children: 0,
@@ -37,17 +38,11 @@ export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFor
 
   const handleAmenityToggle = (amenity: string) => {
     const amenities = formData.amenities || [];
-    if (amenities.includes(amenity)) {
-      setFormData({
-        ...formData,
-        amenities: amenities.filter(a => a !== amenity),
-      });
-    } else {
-      setFormData({
-        ...formData,
-        amenities: [...amenities, amenity],
-      });
-    }
+    const newAmenities = amenities.includes(amenity)
+      ? amenities.filter(a => a !== amenity)
+      : [...amenities, amenity];
+    
+    setFormData({ ...formData, amenities: newAmenities });
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,10 +61,10 @@ export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFor
             if (newPreviews.length === files.length) {
               setImagePreviews(prev => [...prev, ...newPreviews]);
               setImageFiles(prev => [...prev, ...newFiles]);
-              setFormData({
-                ...formData,
-                images: [...(formData.images || []), ...newPreviews]
-              });
+              setFormData(prev => ({
+                ...prev,
+                images: [...(prev.images || []), ...newPreviews]
+              }));
             }
           };
           reader.readAsDataURL(file);
@@ -80,29 +75,17 @@ export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFor
 
   const removeImage = (index: number) => {
     const newPreviews = imagePreviews.filter((_, i) => i !== index);
-    const newFiles = imageFiles.filter((_, i) => i !== index);
     const newImages = (formData.images || []).filter((_, i) => i !== index);
 
     setImagePreviews(newPreviews);
-    setImageFiles(newFiles);
-    setFormData({
-      ...formData,
-      images: newImages
-    });
+    setFormData({ ...formData, images: newImages });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate that name is not empty
     if (!formData.name?.trim()) {
       alert('Room type name is required');
-      return;
-    }
-
-    // Validate that basePrice is greater than 0
-    if (!formData.basePrice || formData.basePrice <= 0) {
-      alert('Base price must be greater than 0');
       return;
     }
 
@@ -110,10 +93,12 @@ export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFor
       id: roomType?.id || Math.random().toString(36).substr(2, 9),
       name: formData.name.trim(),
       description: formData.description || '',
-      basePrice: formData.basePrice,
+      basePrice: formData.basePrice || 0,
       capacity: formData.capacity || { adults: 1, children: 0 },
       amenities: formData.amenities || [],
       images: formData.images || [],
+      // @ts-ignore - Assuming floor might be a new field in your backend
+      floor: formData.floor || '',
       createdAt: roomType?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -143,8 +128,8 @@ export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFor
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Top Row: Name, Price, Capacity, Floor */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Name *</label>
                 <Input
@@ -156,7 +141,7 @@ export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFor
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Base Price per Night *</label>
+                <label className="text-sm font-medium">Base Price *</label>
                 <Input
                   type="number"
                   min="0"
@@ -168,55 +153,42 @@ export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFor
                   className="bg-input border-border"
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Max Capacity *</label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={formData.capacity?.adults || 1}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    capacity: { adults: parseInt(e.target.value) || 1, children: 0 } 
+                  })}
+                  placeholder="4"
+                  required
+                  className="bg-input border-border"
+                />
+              </div>
+              {/* Floor Field */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Floor</label>
+                <Input
+                  value={formData.floor || ''}
+                  onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
+                  placeholder="e.g. 2nd Floor"
+                  className="bg-input border-border"
+                />
+              </div>
             </div>
 
-            {/* Description */}
+            {/* Description Field */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Description</label>
               <Textarea
                 value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe the room type features and amenities..."
-                rows={3}
-                className="bg-input border-border"
+                placeholder="Describe the room features, view, and unique selling points..."
+                className="bg-input border-border min-h-[100px]"
               />
-            </div>
-
-            {/* Capacity */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Adult Capacity *</label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={formData.capacity?.adults || 1}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    capacity: {
-                      ...formData.capacity!,
-                      adults: parseInt(e.target.value)
-                    }
-                  })}
-                  required
-                  className="bg-input border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Children Capacity</label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={formData.capacity?.children || 0}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    capacity: {
-                      ...formData.capacity!,
-                      children: parseInt(e.target.value)
-                    }
-                  })}
-                  className="bg-input border-border"
-                />
-              </div>
             </div>
 
             {/* Room Images */}
@@ -228,7 +200,7 @@ export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFor
                     <div className="w-full h-32 border-2 border-border rounded-lg overflow-hidden">
                       <img
                         src={preview}
-                        alt={`Room type preview ${index + 1}`}
+                        alt="Preview"
                         className="w-full h-full object-cover"
                       />
                       <Button
@@ -265,9 +237,6 @@ export default function RoomTypeForm({ roomType, onSave, onCancel }: RoomTypeFor
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Upload multiple high-quality images of the room type (JPG, PNG, max 5MB each)
-              </p>
             </div>
 
             {/* Amenities */}

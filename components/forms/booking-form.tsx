@@ -321,96 +321,113 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
               </div>
 
               {/* Room Selection */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-foreground">Selected Rooms ({formData.rooms.length})</h4>
-                  <div className="text-sm text-muted-foreground">
-                    Total: ${calculateTotalPrice.toFixed(2)}
-                  </div>
-                </div>
+<div className="space-y-6">
+  <div className="flex items-center justify-between border-b border-border pb-2">
+    <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+      Room Inventory ({formData.rooms.length})
+    </h4>
+    <div className="flex items-center gap-2 text-sm font-medium">
+      <span className="text-muted-foreground font-normal">Subtotal:</span>
+      <span className="text-foreground">${calculateTotalPrice.toFixed(2)}</span>
+    </div>
+  </div>
 
-                {/* Selected Rooms List */}
-                {formData.rooms.length > 0 && (
-                  <div className="space-y-2">
-                    {formData.rooms.map((room, index) => (
-                      <div key={room.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg border">
-                        <div>
-                          <span className="font-medium">{room.roomNumber}</span>
-                          <span className="text-muted-foreground ml-2">({room.roomType})</span>
-                          <span className="text-muted-foreground ml-2">${room.price}/night</span>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeRoom(room.id)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+  {/* Selected Rooms Table-style List */}
+  <div className="space-y-1">
+    {formData.rooms.length > 0 ? (
+      formData.rooms.map((room) => (
+        <div 
+          key={room.id} 
+          className="group flex items-center justify-between p-4 rounded-xl border border-transparent hover:border-border hover:bg-secondary/30 transition-all"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold">
+              {room.roomNumber}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">{room.roomType}</p>
+              <p className="text-xs text-muted-foreground">${room.price.toFixed(2)} per night</p>
+            </div>
+          </div>
+          
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => removeRoom(room.id)}
+            className="opacity-0 group-hover:opacity-100 h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-full transition-opacity"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ))
+    ) : (
+      <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-border rounded-xl bg-secondary/10">
+        <p className="text-sm text-muted-foreground">No rooms selected yet</p>
+      </div>
+    )}
+  </div>
 
-                {/* Add Room Section */}
-                <div className="border-t border-border pt-4">
-                  <h4 className="font-medium text-foreground mb-3">Add Room</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Room Number</label>
-                      <Select
-                        value={currentRoomNumber}
-                        onValueChange={(value) => {
-                          setCurrentRoomNumber(value);
-                          setCurrentRoomType('');
-                        }}
-                      >
-                        <SelectTrigger className="bg-input border-border">
-                          <SelectValue placeholder="Select room" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableRoomsFiltered.map(room => (
-                            <SelectItem key={room.id} value={room.roomNumber}>
-                              {room.roomNumber} ({room.roomType})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Room Type</label>
-                      <Select
-                        value={currentRoomType}
-                        onValueChange={setCurrentRoomType}
-                        disabled={!currentRoomNumber}
-                      >
-                        <SelectTrigger className="bg-input border-border">
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {roomTypesForSelectedNumber.map(room => (
-                            <SelectItem key={room.id} value={room.roomType}>
-                              {room.roomType} (${room.currentPrice}/night)
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-end">
-                      <Button
-                        type="button"
-                        onClick={addRoom}
-                        disabled={!currentRoomNumber || !currentRoomType}
-                        className="w-full"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Room
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+  {/* Add Room Section - Streamlined Bar */}
+  <div className="mt-4 p-4 rounded-xl bg-secondary/50 border border-border shadow-sm">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+      <div className="md:col-span-5 space-y-1.5">
+        <label className="text-xs font-bold text-muted-foreground uppercase">Room Selection</label>
+        <Select
+          value={currentRoomNumber}
+          onValueChange={(value) => {
+            setCurrentRoomNumber(value);
+            setCurrentRoomType('');
+          }}
+        >
+          <SelectTrigger className="bg-background border-border h-11">
+            <SelectValue placeholder="Pick a room..." />
+          </SelectTrigger>
+          <SelectContent>
+            {availableRoomsFiltered.map(room => (
+              <SelectItem key={room.id} value={room.roomNumber}>
+                <span className="font-medium">{room.roomNumber}</span>
+                <span className="ml-2 text-muted-foreground">({room.roomType})</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="md:col-span-4 space-y-1.5">
+        <label className="text-xs font-bold text-muted-foreground uppercase">Rate Type</label>
+        <Select
+          value={currentRoomType}
+          onValueChange={setCurrentRoomType}
+          disabled={!currentRoomNumber}
+        >
+          <SelectTrigger className="bg-background border-border h-11">
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent>
+            {roomTypesForSelectedNumber.map(room => (
+              <SelectItem key={room.id} value={room.roomType}>
+                {room.roomType} — ${room.currentPrice}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="md:col-span-3">
+        <Button
+          type="button"
+          onClick={addRoom}
+          disabled={!currentRoomNumber || !currentRoomType}
+          className="w-full h-11 gap-2 shadow-sm transition-transform active:scale-95"
+        >
+          <Plus className="h-4 w-4" />
+          Add to Booking
+        </Button>
+      </div>
+    </div>
+  </div>
+</div>
 
               {/* Booking Type, Status & Payment */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -468,18 +485,22 @@ export default function BookingForm({ booking, onSave, onCancel }: BookingFormPr
                 </div>
               </div>
 
-              {/* Special Requests */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Special Requests</label>
-                <Textarea
-                  value={formData.specialRequests || ''}
-                  onChange={e => setFormData({ ...formData, specialRequests: e.target.value })}
-                  placeholder="Late arrival, high floor preferred, etc."
-                  className="bg-input border-border"
-                  rows={3}
-                />
-              </div>
-
+              
+                    {/* ✅ USER AMOUNT FIELD */}
+            <div>
+              <label className="text-sm font-medium">Custom Amount</label>
+              <Input
+                type="number"
+                value={formData.userAmount || ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    userAmount: parseFloat(e.target.value) || 0,
+                  })
+                }
+                placeholder="Override total price"
+              />
+            </div>
               {/* Total Price */}
               <div className="bg-secondary/50 p-4 rounded-lg border border-border">
                 <p className="text-sm text-muted-foreground">Total Price</p>

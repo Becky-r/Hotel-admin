@@ -20,7 +20,7 @@ const roleInfo = {
   owner: { label: 'Owner', color: 'bg-purple-100 text-purple-800 border-purple-300', icon: Shield },
   manager: { label: 'Manager', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: UsersIcon },
   receptionist: { label: 'Receptionist', color: 'bg-green-100 text-green-800 border-green-300', icon: Key },
-  housekeeping: { label: 'Housekeeping', color: 'bg-orange-100 text-orange-800 border-orange-300', icon: Key },
+  
 };
 
 export default function StaffManagement() {
@@ -151,7 +151,7 @@ export default function StaffManagement() {
                   <SelectItem value="owner">Owner</SelectItem>
                   <SelectItem value="manager">Manager</SelectItem>
                   <SelectItem value="receptionist">Receptionist</SelectItem>
-                  <SelectItem value="housekeeping">Housekeeping</SelectItem>
+                 
                 </SelectContent>
               </Select>
             </div>
@@ -237,10 +237,7 @@ export default function StaffManagement() {
               <p className="font-semibold text-foreground mb-2">Receptionist</p>
               <p className="text-sm text-muted-foreground">Access to booking management and check-in/check-out only</p>
             </div>
-            <div>
-              <p className="font-semibold text-foreground mb-2">Housekeeping</p>
-              <p className="text-sm text-muted-foreground">Access to room status and maintenance reports</p>
-            </div>
+          
           </div>
         </CardContent>
       </Card>

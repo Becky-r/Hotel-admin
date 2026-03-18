@@ -25,6 +25,7 @@ export default function StaffForm({ staff, onSave, onCancel }: StaffFormProps) {
     staff || {
       name: '',
       email: '',
+      phone: '', // Added phone field
       password: '',
       role: 'receptionist',
     }
@@ -37,6 +38,7 @@ export default function StaffForm({ staff, onSave, onCancel }: StaffFormProps) {
       id: staff?.id || Math.random().toString(36).substr(2, 9),
       name: formData.name || '',
       email: formData.email || '',
+      phone: formData.phone || '', // Map phone to final object
       password: formData.password || '',
       role: (formData.role as any) || 'receptionist',
       createdAt: staff?.createdAt || new Date().toISOString(),
@@ -89,36 +91,30 @@ export default function StaffForm({ staff, onSave, onCancel }: StaffFormProps) {
                   className="bg-input border-border"
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Password *</label>
-              <Input
-                type="password"
-                value={formData.password || ''}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="••••••••"
-                required={!staff}
-                className="bg-input border-border"
-              />
-              {staff && (
-                <p className="text-xs text-muted-foreground">Leave blank to keep current password</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Role *</label>
-              <Select value={formData.role || 'receptionist'} onValueChange={(value) => setFormData({ ...formData, role: value as any })}>
-                <SelectTrigger className="bg-input border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="owner">Owner - Full access to all features</SelectItem>
-                  <SelectItem value="manager">Manager - Bookings, rooms, and reports</SelectItem>
-                  <SelectItem value="receptionist">Receptionist - Check-in/out and bookings</SelectItem>
-                  <SelectItem value="housekeeping">Housekeeping - Room status only</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* --- New Phone Number Field --- */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Phone Number</label>
+                <Input
+                  type="tel"
+                  value={formData.phone || ''}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="+1 (555) 000-0000"
+                  className="bg-input border-border"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Role *</label>
+                <Select value={formData.role || 'receptionist'} onValueChange={(value) => setFormData({ ...formData, role: value as any })}>
+                  <SelectTrigger className="bg-input border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">Owner - Full access</SelectItem>
+                    <SelectItem value="manager">Manager - Management access</SelectItem>
+                    <SelectItem value="receptionist">Receptionist - Limited access</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="bg-secondary/50 p-4 rounded-lg border border-border space-y-2">
@@ -146,13 +142,6 @@ export default function StaffForm({ staff, onSave, onCancel }: StaffFormProps) {
                     <li>✓ Check-in/check-out</li>
                     <li>✓ Create bookings</li>
                     <li>✓ Modify bookings</li>
-                  </>
-                )}
-                {formData.role === 'housekeeping' && (
-                  <>
-                    <li>✓ View room status</li>
-                    <li>✓ Update room status</li>
-                    <li>✓ Maintenance reports</li>
                   </>
                 )}
               </ul>
