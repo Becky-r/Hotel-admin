@@ -329,7 +329,8 @@ export default function BookingManagement() {
                   </div>
                   <div className="space-y-2">
                     <p className="text-xs text-slate-700 italic leading-relaxed">
-                      "{log.changes}"
+                      "{log.changes}"                 
+
                     </p>
                   </div>
                 </div>

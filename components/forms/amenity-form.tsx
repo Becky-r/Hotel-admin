@@ -76,15 +76,7 @@ export default function AmenityForm({ amenity, onSave, onCancel }: AmenityFormPr
                   className="bg-input border-border"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Category</label>
-                <Input
-                  value={formData.category || ''}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="Room, Food, Service..."
-                  className="bg-input border-border"
-                />
-              </div>
+             
             </div>
 
             <div className="space-y-2">

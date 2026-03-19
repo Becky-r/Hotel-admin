@@ -104,17 +104,7 @@ export default function ServiceForm({ service, onSave, onCancel }: ServiceFormPr
                   className="bg-input border-border"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Duration (minutes)</label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={formData.durationMinutes ?? 0}
-                  onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
-                  placeholder="30"
-                  className="bg-input border-border"
-                />
-              </div>
+
               <div className="flex flex-col justify-between">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Active</label>
