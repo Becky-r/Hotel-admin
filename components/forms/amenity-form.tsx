@@ -20,7 +20,7 @@ export default function AmenityForm({ amenity, onSave, onCancel }: AmenityFormPr
     amenity || {
       name: '',
       description: '',
-      category: 'General',
+     
       active: true,
     }
   );
@@ -32,7 +32,7 @@ export default function AmenityForm({ amenity, onSave, onCancel }: AmenityFormPr
       id: amenity?.id || Math.random().toString(36).substr(2, 9),
       name: formData.name || '',
       description: formData.description || '',
-      category: formData.category || 'General',
+      
       active: formData.active ?? true,
       createdAt: amenity?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
